@@ -1,0 +1,14 @@
+fastapi==0.116.1
+uvicorn[standard]==0.35.0
+pydantic==2.11.7
+python-dotenv==1.1.1
+httpx==0.28.1
+google-genai>=1.0,<2
+SQLAlchemy>=2.0,<3
+psycopg[binary]>=3.2,<4
+alembic>=1.16,<2
+celery[redis]>=5.5,<6
+PyJWT>=2.10,<3
+langgraph>=0.6,<1
+
+boto3>=1.35,<2

@@ -1,0 +1,23 @@
+{
+  "id": "evt_demo_captured_001",
+  "event": "payment.captured",
+  "payload": {
+    "payment": {
+      "entity": {
+        "id": "pay_demo_001",
+        "order_id": "order_demo_001",
+        "amount": 149900,
+        "currency": "INR",
+        "status": "captured",
+        "method": "upi",
+        "bank": "UPI",
+        "email": "aditi@example.com",
+        "contact": "+919876543210",
+        "notes": {
+          "customer_name": "Aditi Sharma"
+        }
+      }
+    }
+  }
+}
+

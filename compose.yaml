@@ -1,0 +1,81 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: revive_ai
+      POSTGRES_USER: revive
+      POSTGRES_PASSWORD: revive_dev
+    ports: ["5432:5432"]
+    volumes: ["postgres-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U revive -d revive_ai"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  migrate:
+    build: ./backend
+    command: ["alembic", "-c", "alembic.ini", "upgrade", "head"]
+    environment: &backend-env
+      APP_ENV: development
+      DATABASE_URL: postgresql+psycopg://revive:revive_dev@postgres:5432/revive_ai
+      REDIS_URL: redis://redis:6379/0
+      RAZORPAY_WEBHOOK_SECRET: ${RAZORPAY_WEBHOOK_SECRET:-dev_webhook_secret}
+      RAZORPAY_USE_API: ${RAZORPAY_USE_API:-false}
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-}
+      AI_PROVIDER: ${AI_PROVIDER:-deterministic}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+      JWT_SECRET: ${JWT_SECRET:-local-dev-secret-change-in-production}
+      BOOTSTRAP_ADMIN_EMAIL: admin@revive.local
+      BOOTSTRAP_ADMIN_PASSWORD: ChangeMe123!
+      MESSAGING_PROVIDER: ${MESSAGING_PROVIDER:-simulated}
+      AWS_REGION: ${AWS_REGION:-ap-south-1}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      SES_FROM_EMAIL: ${SES_FROM_EMAIL:-}
+      DEMO_TIME_SCALE: ${DEMO_TIME_SCALE:-0.001}
+    depends_on:
+      postgres: {condition: service_healthy}
+
+  api:
+    build: ./backend
+    environment: *backend-env
+    ports: ["8000:8000"]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  worker:
+    build: ./backend
+    command: ["celery", "-A", "app.tasks.celery_app", "worker", "--loglevel=INFO"]
+    environment: *backend-env
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+
+  web:
+    build: ./frontend
+    environment:
+      VITE_API_URL: http://localhost:8000/api/v1
+    ports: ["5173:5173"]
+    depends_on:
+      api: {condition: service_healthy}
+
+volumes:
+  postgres-data:

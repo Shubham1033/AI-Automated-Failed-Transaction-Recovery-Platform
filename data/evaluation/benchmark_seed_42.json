@@ -1,0 +1,28 @@
+{
+  "seed": 42,
+  "case_count": 100,
+  "total_at_risk_paise": 33740000,
+  "arms": {
+    "organic": {
+      "recovered_paise": 4098400,
+      "recovered_cases": 16,
+      "messages": 0,
+      "recovery_rate_bps": 1215
+    },
+    "naive": {
+      "recovered_paise": 12846800,
+      "recovered_cases": 32,
+      "messages": 100,
+      "recovery_rate_bps": 3808
+    },
+    "revive_ai": {
+      "recovered_paise": 13946100,
+      "recovered_cases": 39,
+      "messages": 69,
+      "recovery_rate_bps": 4133
+    }
+  },
+  "incremental_vs_naive_paise": 1099300,
+  "messages_avoided": 31,
+  "disclaimer": "Synthetic benchmark; probabilities are explicit demo assumptions, not merchant results."
+}
